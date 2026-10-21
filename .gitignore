@@ -1,0 +1,3 @@
+# Ignore compiled and IDE stuff
+target
+.vscode

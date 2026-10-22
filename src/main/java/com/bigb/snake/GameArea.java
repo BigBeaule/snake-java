@@ -16,7 +16,6 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.stage.Screen;
 import javafx.util.Duration;
-import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.mutable.MutableObject;
 
 /**
@@ -259,17 +258,18 @@ public class GameArea extends TilePane {
         return null;
     }
 
+    /**
+     * Convert the given value to the next even value.
+     * 
+     * @param value The value to convert.
+     * @return The value if already even and +1 otherwise.
+     */ 
     private static int evenValue(int value) {
         return value % 2 == 0 ? value : value + 1;
     }
 
-    @RequiredArgsConstructor
-    private static final class PlayerStartingData implements Comparable<PlayerStartingData> {
-        private final Direction direction;
-        private final int x;
-        private final int y;
-        private final int index;
-
+    private static record PlayerStartingData(Direction direction, int x, int y, int index)
+            implements Comparable<PlayerStartingData> {
         @Override
         public int compareTo(PlayerStartingData other) {
             if (y == other.y) {

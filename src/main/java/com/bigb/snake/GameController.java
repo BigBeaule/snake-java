@@ -13,6 +13,7 @@ import javafx.beans.binding.Bindings;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.scene.Parent;
 import javafx.scene.control.Button;
@@ -27,9 +28,6 @@ import lombok.Setter;
  * Main controller
  */
 public class GameController {
-    /** The time in milliseconds that the game will wait before moving players so the lower it is, the faster it will be. */
-    private static final int MOVE_SPEED = 50;
-
     /**
      * Dummy player to generate the tri state check during the playing loop (many players standing vs one player standing vs
      * all dead).
@@ -41,7 +39,7 @@ public class GameController {
             new PlayerData(Color.RED, "Red", KeyCode.Q, KeyCode.W), //
             new PlayerData(Color.BLUE, "Blue", KeyCode.O, KeyCode.P), //
             new PlayerData(Color.GREEN, "Green", KeyCode.LEFT, KeyCode.RIGHT), //
-            new PlayerData(Color.YELLOW, "Yellow", KeyCode.NUMPAD4, KeyCode.NUMPAD6) //
+            new PlayerData(Color.GOLD, "Yellow", KeyCode.NUMPAD4, KeyCode.NUMPAD6) //
     };
 
     /** Main container. */
@@ -83,6 +81,9 @@ public class GameController {
     /** Number of seconds for the current minute in the game. */
     private int seconds;
 
+    /** The time in milliseconds that the game will wait before moving players so the lower it is, the faster it will be. */
+    private @Setter int gameSpeed;
+
     /** Number of players in the game. */
     private @Setter int playersCount;
 
@@ -106,6 +107,10 @@ public class GameController {
                 playerKeys.put(player.getLeftKey(), player);
                 playerKeys.put(player.getRightKey(), player);
             }
+
+            // Initialize the main game loop.
+            gameLoop = new Timeline(new KeyFrame(Duration.millis(gameSpeed), gameLoopHandler));
+            gameLoop.setCycleCount(Animation.INDEFINITE);
         });
 
         newGameBtn.setOnAction(this::newGame);
@@ -122,34 +127,6 @@ public class GameController {
             refreshTimer();
         }));
         timerLoop.setCycleCount(Animation.INDEFINITE);
-
-        // Initialize the main game loop.
-        gameLoop = new Timeline(new KeyFrame(Duration.millis(MOVE_SPEED), event -> {
-            // Update the players position
-            PlayerData lastPlayerStanding = null;
-            for (PlayerData player : players) {
-                if (player.isAlive() && gameArea.movePlayer(player)) {
-                    // Still alive
-                    if (lastPlayerStanding == null) {
-                        lastPlayerStanding = player;
-                    } else {
-                        // More than one surviver
-                        lastPlayerStanding = GAME_ON;
-                    }
-                }
-            }
-
-            if (lastPlayerStanding == null) {
-                stopGame();
-                System.out.println(players.length > 1 ? "Draw!!!"
-                        : "%s player survived for %s and %s seconds!".formatted(players[0].getName(), minutes, seconds));
-            } else if (lastPlayerStanding != GAME_ON && players.length > 1) {
-                stopGame();
-                lastPlayerStanding.win();
-                System.out.println("%s player wins!".formatted(lastPlayerStanding.getName()));
-            }
-        }));
-        gameLoop.setCycleCount(Animation.INDEFINITE);
 
         // Binds the score boxes to their player.
         List<Label> scoreBoxes = Arrays.asList(score1, score2, score3, score4);
@@ -219,4 +196,33 @@ public class GameController {
             player.turn(event.getCode());
         }
     }
+
+    /**
+     * The event handler updating the players position and game status on every tick defined by the game speed.
+     */
+    private EventHandler<ActionEvent> gameLoopHandler = event -> {
+        // Update the players position
+        PlayerData lastPlayerStanding = null;
+        for (PlayerData player : players) {
+            if (player.isAlive() && gameArea.movePlayer(player)) {
+                // Still alive
+                if (lastPlayerStanding == null) {
+                    lastPlayerStanding = player;
+                } else {
+                    // More than one surviver
+                    lastPlayerStanding = GAME_ON;
+                }
+            }
+        }
+
+        if (lastPlayerStanding == null) {
+            stopGame();
+            System.out.println(players.length > 1 ? "Draw!!!"
+                    : "%s player survived for %s and %s seconds!".formatted(players[0].getName(), minutes, seconds));
+        } else if (lastPlayerStanding != GAME_ON && players.length > 1) {
+            stopGame();
+            lastPlayerStanding.win();
+            System.out.println("%s player wins!".formatted(lastPlayerStanding.getName()));
+        }
+    };
 }

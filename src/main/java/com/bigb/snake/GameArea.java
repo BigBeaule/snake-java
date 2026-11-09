@@ -24,7 +24,7 @@ import org.apache.commons.lang3.mutable.MutableObject;
  */
 public class GameArea extends TilePane {
     /** The size of a single tile block in pixels. */
-    private static final int BLOCK_SIZE = 5;
+    private static final int BLOCK_SIZE = 7;
 
     /** The color or a block. */
     private static final Color BLOCK_COLOR = Color.BLACK;
@@ -129,7 +129,7 @@ public class GameArea extends TilePane {
                 if (x == player.x && y == player.y) {
                     // Handling the next player starting position.
                     PlayerData playerData = players[player.index];
-                    block.setFill(playerData.getColor());
+                    block.setFill(playerData.getHeadColor());
                     playerData.newGame(player.direction, x, y);
                     nextPlayer.setValue(findNextPlayerStartingPosition(x, y, gamePlayersStartingData));
                     return;
@@ -159,7 +159,10 @@ public class GameArea extends TilePane {
      * @return boolean True if the player is still alive and false if it just crashed on another player or the boundary.
      */
     public boolean movePlayer(PlayerData player) {
+        int prevX = player.getX();
+        int prevY = player.getY();
         int[] position = player.move();
+
         if (isOutOfBound(position[0]) || isOutOfBound(position[1])) {
             // Out of bound
             player.setAlive(false);
@@ -169,7 +172,9 @@ public class GameArea extends TilePane {
                 // Crash
                 player.setAlive(false);
             } else {
-                block.setFill(player.getColor());
+                block.setFill(player.getHeadColor());
+                // Set the previous block to their normal color
+                getBlock(prevX, prevY).setFill(player.getColor());
             }
         }
 

@@ -4,15 +4,20 @@ import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.scene.input.KeyCode;
 import javafx.scene.paint.Color;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * A player's data.
  */
-@Data
+@Getter
+@Setter 
 public class PlayerData {
     /** The player's color. */
     private final Color color;
+
+    /** The player's head color. */
+    private final Color headColor;
 
     /** The player's name. */
     private final String name;
@@ -37,6 +42,24 @@ public class PlayerData {
 
     /** Bindable property for the player's score. */
     private IntegerProperty score = new SimpleIntegerProperty(0);
+
+    /**
+     * Creates a new PlayerData
+     * 
+     * @param color The player's color.
+     * @param name The player's name.
+     * @param leftKey The left turning key for that player.
+     * @param rightKey The right turning key for that player.
+     */
+    public PlayerData(Color color, String name, KeyCode leftKey, KeyCode rightKey) {
+        this.name = name;
+        this.color = color;
+        this.leftKey = leftKey;
+        this.rightKey = rightKey;
+
+        // Create a lighter version for the head
+        this.headColor = color.desaturate().desaturate().brighter().brighter();
+    }
 
     /**
      * Setup a new game for that player.
